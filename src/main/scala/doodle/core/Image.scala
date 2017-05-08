@@ -9,7 +9,7 @@ sealed trait Image {
 
   def above(that: Image) : Image = Above(this, that)
 
-  def draw(canvas: Canvas) = draw(canvas, 0, 0)
+  def draw(canvas: Canvas) : Unit = draw(canvas, 0, 0)
 
   def draw(canvas: Canvas, originX: Double, originY: Double) : Unit = this match {
       case Circle(radius) => canvas.circle(0, 0, radius)
