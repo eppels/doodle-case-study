@@ -43,10 +43,10 @@ sealed trait Image {
     BoundingBox(this)
 
   /** Utility function */
-  def draw(canvas: Canvas): Unit =
-    draw(canvas, DrawingContext.whiteLines, Vec.zero)
+  def draw(implicit canvas: Canvas): Unit =
+    draw(DrawingContext.whiteLines, Vec.zero)(canvas)
 
-  def draw(canvas: Canvas, context: DrawingContext, origin: Vec): Unit = {
+  def draw(context: DrawingContext, origin: Vec)(implicit canvas: Canvas): Unit = {
     def doStrokeAndFill() = {
       context.fill.foreach { fill =>
         canvas.setFill(fill.color)
@@ -78,8 +78,8 @@ sealed trait Image {
         doStrokeAndFill()
 
       case Overlay(t, b) =>
-        b.draw(canvas, context, origin)
-        t.draw(canvas, context, origin)
+        b.draw(context, origin)
+        t.draw(context, origin)
 
       case b @ Beside(l, r) =>
         val box = b.boundingBox
@@ -91,8 +91,8 @@ sealed trait Image {
         // Beside always vertically centers l and r, so we don't need
         // to calculate center ys for l and r.
 
-        l.draw(canvas, context, Vec(lOriginX, origin.y))
-        r.draw(canvas, context, Vec(rOriginX, origin.y))
+        l.draw(context, Vec(lOriginX, origin.y))
+        r.draw(context, Vec(rOriginX, origin.y))
       case a @ Above(t, b) =>
         val box = a.boundingBox
         val tBox = t.boundingBox
@@ -101,13 +101,13 @@ sealed trait Image {
         val tOriginY = origin.y + box.top - (tBox.height / 2)
         val bOriginY = origin.y + box.bottom + (bBox.height / 2)
 
-        t.draw(canvas, context, Vec(origin.x, tOriginY))
-        b.draw(canvas, context, Vec(origin.x, bOriginY))
+        t.draw(context, Vec(origin.x, tOriginY))
+        b.draw(context, Vec(origin.x, bOriginY))
       case At(vec, i) =>
-        i.draw(canvas, context, origin + vec)
+        i.draw(context, origin + vec)
 
       case ContextTransform(f, i) =>
-        i.draw(canvas, f(context), origin)
+        i.draw(f(context), origin)
     }
   }
 }

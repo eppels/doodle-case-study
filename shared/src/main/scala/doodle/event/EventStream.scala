@@ -1,6 +1,8 @@
 package doodle
 package event
 
+import doodle.typeclasses.{Scannable, Applicative, Monad, Functor}
+
 sealed trait EventStream[A] {
   def map[B](f: A => B): EventStream[B]
 
@@ -13,6 +15,21 @@ object EventStream {
     val stream = new Source[A]()
     handler((evt: A) => stream.observe(evt))
     stream
+  }
+
+  implicit object CoolEventStream extends Functor[EventStream] with Monad[EventStream] with Applicative[EventStream] with Scannable[EventStream] {
+    override def map[A, B](fa: EventStream[A])(f: (A) => B): EventStream[B] = fa.map(f)
+
+    override def flatMap[A, B](fa: EventStream[A])(f: (A) => EventStream[B]): EventStream[B] = ???
+
+    override def point[A](a: A): EventStream[A] = ???
+
+    override def zip[A, B](fa: EventStream[A], fb: EventStream[B]): EventStream[(A, B)] = for {
+      a <- fa
+      b <- fb
+    } yield (a, b)
+
+    override def scanLeft[A, B](fa: EventStream[A])(b: B)(f: (B, A) => B): EventStream[B] = fa.scanLeft(b)(f)
   }
 }
 sealed trait Observer[A] {
